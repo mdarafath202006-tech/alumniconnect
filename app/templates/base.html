@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>{% block title %}AlumniConnect – AI Mentorship Platform{% endblock %}</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+
+  <!-- Bootstrap + Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+
+  <!-- CSRF token meta (for JS fetch calls) -->
+  <meta name="csrf-token" content="{{ csrf_token() }}"/>
+
+  <style>
+    /* ── Design tokens ─────────────────────────────────────────── */
+    :root {
+      --bg:          #f0f2f8;
+      --surface:     #ffffff;
+      --border:      #e2e6f0;
+      --text:        #111827;
+      --muted:       #6b7280;
+      --accent:      #4f46e5;
+      --accent2:     #7c3aed;
+      --success:     #059669;
+      --warning:     #d97706;
+      --danger:      #dc2626;
+      --info:        #0891b2;
+      --nav-bg:      #0f0c29;
+      --radius:      14px;
+      --shadow:      0 2px 16px rgba(0,0,0,.08);
+      --shadow-lg:   0 8px 40px rgba(0,0,0,.14);
+      --font-head:   'Syne', sans-serif;
+      --font-body:   'DM Sans', sans-serif;
+    }
+    [data-theme="dark"] {
+      --bg:        #0d0f18;
+      --surface:   #161926;
+      --border:    #252a3a;
+      --text:      #e8eaf6;
+      --muted:     #9ca3af;
+      --nav-bg:    #0a0c14;
+      --shadow:    0 2px 16px rgba(0,0,0,.4);
+      --shadow-lg: 0 8px 40px rgba(0,0,0,.6);
+    }
+
+    /* ── Base ──────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font-body);
+      background: var(--bg);
+      color: var(--text);
+      transition: background .3s, color .3s;
+      min-height: 100vh;
+    }
+    h1,h2,h3,h4,h5,h6 { font-family: var(--font-head); }
+    a { color: var(--accent); }
+
+    /* ── Navbar ────────────────────────────────────────────────── */
+    .site-nav {
+      background: var(--nav-bg);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(255,255,255,.06);
+      position: sticky; top: 0; z-index: 1000;
+      padding: .75rem 0;
+    }
+    .site-nav .navbar-brand {
+      font-family: var(--font-head);
+      font-weight: 800;
+      font-size: 1.35rem;
+      color: #fff !important;
+      letter-spacing: -.3px;
+    }
+    .site-nav .navbar-brand span { color: var(--accent); }
+    .site-nav .nav-link {
+      color: rgba(255,255,255,.7) !important;
+      font-size: .88rem;
+      font-weight: 500;
+      padding: .45rem .85rem !important;
+      border-radius: 8px;
+      transition: all .2s;
+    }
+    .site-nav .nav-link:hover,
+    .site-nav .nav-link.active { color: #fff !important; background: rgba(255,255,255,.1); }
+    .site-nav .nav-link i { width: 16px; }
+    .btn-nav-cta {
+      background: var(--accent);
+      color: #fff !important;
+      font-weight: 600;
+      padding: .4rem 1rem !important;
+      border-radius: 8px;
+    }
+    .btn-nav-cta:hover { background: var(--accent2) !important; }
+    .navbar-toggler { border: none; color: #fff; }
+    .navbar-toggler:focus { box-shadow: none; }
+
+    /* ── Theme toggle ──────────────────────────────────────────── */
+    .theme-toggle {
+      background: rgba(255,255,255,.1);
+      border: none;
+      color: #fff;
+      width: 34px; height: 34px;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: background .2s;
+      font-size: .9rem;
+    }
+    .theme-toggle:hover { background: rgba(255,255,255,.2); }
+
+    /* ── Flash alerts ──────────────────────────────────────────── */
+    .flash-wrap { position: fixed; top: 70px; right: 1rem; z-index: 2000; width: 340px; }
+    .flash-wrap .alert {
+      border: none;
+      border-radius: 12px;
+      box-shadow: var(--shadow-lg);
+      font-size: .88rem;
+      animation: slideIn .3s ease;
+    }
+    @keyframes slideIn { from { transform: translateX(120%); opacity:0; } to { transform:none; opacity:1; } }
+
+    /* ── Page wrapper ──────────────────────────────────────────── */
+    .page-wrap { padding: 2rem 0 4rem; }
+
+    /* ── Cards ─────────────────────────────────────────────────── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border) !important;
+      border-radius: var(--radius) !important;
+      box-shadow: var(--shadow);
+      transition: transform .2s, box-shadow .2s;
+    }
+    .card-hover:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-lg) !important;
+    }
+
+    /* ── KPI stat card ─────────────────────────────────────────── */
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem 1.5rem;
+      display: flex; align-items: center; gap: 1rem;
+    }
+    .stat-icon {
+      width: 52px; height: 52px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem; flex-shrink: 0;
+    }
+    .stat-value { font-family: var(--font-head); font-size: 1.8rem; font-weight: 800; line-height: 1; }
+    .stat-label { font-size: .8rem; color: var(--muted); margin-top: 2px; }
+
+    /* ── Avatar ────────────────────────────────────────────────── */
+    .av {
+      border-radius: 50%;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-family: var(--font-head); font-weight: 700;
+      flex-shrink: 0; text-transform: uppercase;
+    }
+    .av-sm  { width: 38px; height: 38px; font-size: .95rem; }
+    .av-md  { width: 50px; height: 50px; font-size: 1.2rem; }
+    .av-lg  { width: 72px; height: 72px; font-size: 1.8rem; }
+    .av-accent  { background: linear-gradient(135deg,var(--accent),var(--accent2)); color: #fff; }
+    .av-success { background: linear-gradient(135deg,#059669,#10b981); color: #fff; }
+    .av-info    { background: linear-gradient(135deg,#0891b2,#06b6d4); color: #fff; }
+
+    /* ── Badge ─────────────────────────────────────────────────── */
+    .skill-tag {
+      display: inline-block;
+      background: rgba(79,70,229,.1);
+      color: var(--accent);
+      border: 1px solid rgba(79,70,229,.25);
+      border-radius: 6px;
+      padding: 2px 10px;
+      font-size: .78rem;
+      font-weight: 500;
+      margin: 2px;
+    }
+    .skill-tag.matched {
+      background: rgba(5,150,105,.12);
+      color: var(--success);
+      border-color: rgba(5,150,105,.3);
+    }
+
+    /* ── Match bar ─────────────────────────────────────────────── */
+    .match-bar-wrap { margin-bottom: .75rem; }
+    .match-bar-track {
+      height: 6px; background: var(--border);
+      border-radius: 99px; overflow: hidden;
+    }
+    .match-bar-fill {
+      height: 100%; border-radius: 99px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      transition: width .8s cubic-bezier(.4,0,.2,1);
+    }
+
+    /* ── Buttons ───────────────────────────────────────────────── */
+    .btn-accent {
+      background: var(--accent);
+      color: #fff; border: none;
+      font-weight: 600; border-radius: 10px;
+      transition: background .2s, transform .15s;
+    }
+    .btn-accent:hover { background: var(--accent2); color: #fff; transform: translateY(-1px); }
+    .btn-ghost {
+      background: transparent;
+      border: 1.5px solid var(--border);
+      color: var(--text);
+      font-weight: 500; border-radius: 10px;
+      transition: all .2s;
+    }
+    .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* ── Section header ────────────────────────────────────────── */
+    .section-head { font-size: 1.3rem; font-weight: 800; margin-bottom: 1.25rem; }
+    .section-head span { color: var(--accent); }
+
+    /* ── Form controls ─────────────────────────────────────────── */
+    .form-control, .form-select {
+      background: var(--surface) !important;
+      color: var(--text) !important;
+      border: 1.5px solid var(--border) !important;
+      border-radius: 10px !important;
+      padding: .6rem 1rem !important;
+      font-size: .9rem;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .form-control:focus, .form-select:focus {
+      border-color: var(--accent) !important;
+      box-shadow: 0 0 0 3px rgba(79,70,229,.15) !important;
+    }
+    .form-label { font-size: .85rem; font-weight: 600; color: var(--muted); margin-bottom: .4rem; }
+    .input-group-text {
+      background: var(--surface) !important;
+      border: 1.5px solid var(--border) !important;
+      color: var(--muted) !important;
+      border-radius: 10px 0 0 10px !important;
+    }
+
+    /* ── Table ─────────────────────────────────────────────────── */
+    .table { color: var(--text) !important; }
+    .table th { font-size: .8rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; border-bottom: 2px solid var(--border) !important; }
+    .table td { font-size: .88rem; border-color: var(--border) !important; vertical-align: middle; }
+    .table-hover tbody tr:hover { background: rgba(79,70,229,.04) !important; }
+
+    /* ── Progress ──────────────────────────────────────────────── */
+    .progress { background: var(--border) !important; border-radius: 99px; }
+    .progress-bar { border-radius: 99px; }
+
+    /* ── Modal ─────────────────────────────────────────────────── */
+    .modal-content {
+      background: var(--surface) !important;
+      border: 1px solid var(--border) !important;
+      border-radius: 18px !important;
+    }
+    .modal-header, .modal-footer { border-color: var(--border) !important; }
+
+    /* ── Chat ──────────────────────────────────────────────────── */
+    .chat-box {
+      height: 320px; overflow-y: auto;
+      background: var(--bg); border-radius: 12px;
+      padding: 1rem; display: flex; flex-direction: column; gap: .5rem;
+    }
+    .chat-msg {
+      max-width: 72%; padding: .55rem .9rem;
+      border-radius: 14px; font-size: .88rem; line-height: 1.45;
+    }
+    .chat-msg.me    { background: var(--accent); color:#fff; align-self: flex-end; border-bottom-right-radius: 4px; }
+    .chat-msg.them  { background: var(--surface); border: 1px solid var(--border); align-self: flex-start; border-bottom-left-radius: 4px; }
+    .chat-msg .sender { font-size: .72rem; font-weight: 700; margin-bottom: 2px; opacity:.7; }
+    .chat-msg.system { background: transparent; color: var(--muted); font-size:.78rem; align-self:center; font-style:italic; }
+
+    /* ── Footer ────────────────────────────────────────────────── */
+    footer {
+      background: var(--nav-bg);
+      color: rgba(255,255,255,.5);
+      text-align: center;
+      padding: 1.5rem;
+      font-size: .82rem;
+      margin-top: auto;
+    }
+    footer strong { color: rgba(255,255,255,.8); }
+
+    /* ── Utilities ─────────────────────────────────────────────── */
+    .text-accent { color: var(--accent) !important; }
+    .bg-accent   { background: var(--accent) !important; }
+    .border-accent { border-color: var(--accent) !important; }
+    .muted { color: var(--muted); }
+    .surface { background: var(--surface); }
+
+    /* ── Animations ────────────────────────────────────────────── */
+    .fade-up { animation: fadeUp .5s ease both; }
+    @keyframes fadeUp { from { opacity:0; transform:translateY(18px); } to { opacity:1; transform:none; } }
+    .fade-up-1 { animation-delay:.08s; }
+    .fade-up-2 { animation-delay:.16s; }
+    .fade-up-3 { animation-delay:.24s; }
+    .fade-up-4 { animation-delay:.32s; }
+
+    /* ── Dropdown ──────────────────────────────────────────────── */
+    .dropdown-menu {
+      background: var(--surface) !important;
+      border: 1px solid var(--border) !important;
+      border-radius: 12px !important;
+      box-shadow: var(--shadow-lg) !important;
+      padding: .4rem !important;
+    }
+    .dropdown-item { color: var(--text) !important; border-radius: 8px !important; font-size: .88rem; padding: .5rem .85rem; }
+    .dropdown-item:hover { background: rgba(79,70,229,.08) !important; }
+    .dropdown-item.text-danger { color: var(--danger) !important; }
+    .dropdown-divider { border-color: var(--border) !important; }
+
+    /* ── Scrollbar ─────────────────────────────────────────────── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+
+    @media (max-width: 768px) {
+      .page-wrap { padding: 1.25rem 0 3rem; }
+    }
+  </style>
+  {% block head %}{% endblock %}
+</head>
+<body>
+
+<!-- ── Navbar ──────────────────────────────────────────────────────────────── -->
+<nav class="site-nav navbar navbar-expand-lg">
+  <div class="container">
+    <a class="navbar-brand" href="{{ url_for('index') }}">
+      <i class="fas fa-graduation-cap me-2" style="color:var(--accent)"></i>Alumni<span>Connect</span>
+    </a>
+    <div class="d-flex align-items-center gap-2 d-lg-none">
+      <button class="theme-toggle" id="themeToggleMobile" title="Toggle dark mode">
+        <i class="fas fa-moon"></i>
+      </button>
+      <button class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navMenu">
+        <i class="fas fa-bars" style="color:#fff"></i>
+      </button>
+    </div>
+
+    <div class="collapse navbar-collapse" id="navMenu">
+      <ul class="navbar-nav ms-auto align-items-center gap-1">
+        {% if session.user_id %}
+          {% if session.role == 'student' %}
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('student.dashboard') }}"><i class="fas fa-house"></i> Dashboard</a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('student.recommendations') }}"><i class="fas fa-robot"></i> AI Match</a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('student.search') }}"><i class="fas fa-magnifying-glass"></i> Search</a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('student.skill_gap') }}"><i class="fas fa-chart-radar"></i> Skill Gap</a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('analytics.analytics') }}"><i class="fas fa-chart-bar"></i> Analytics</a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('student.profile') }}"><i class="fas fa-user"></i> Profile</a></li>
+          {% elif session.role == 'alumni' %}
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('alumni.dashboard') }}"><i class="fas fa-house"></i> Dashboard</a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('analytics.analytics') }}"><i class="fas fa-chart-bar"></i> Analytics</a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('alumni.profile') }}"><i class="fas fa-user"></i> Profile</a></li>
+          {% elif session.role == 'admin' %}
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('admin.dashboard') }}"><i class="fas fa-gauge"></i> Admin</a></li>
+          {% endif %}
+
+          <li class="nav-item dropdown ms-2">
+            <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#" data-bs-toggle="dropdown">
+              <span class="av av-sm av-accent">{{ session.name[0].upper() }}</span>
+              <span class="d-none d-lg-inline">{{ session.name.split()[0] }}</span>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li class="px-3 py-1 small muted">{{ session.name }}</li>
+              <li class="px-3 py-1"><span class="badge" style="background:var(--accent);font-size:.7rem">{{ session.role.title() }}</span></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item text-danger" href="{{ url_for('auth.logout') }}"><i class="fas fa-right-from-bracket me-2"></i>Logout</a></li>
+            </ul>
+          </li>
+        {% else %}
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.login') }}">Login</a></li>
+          <li class="nav-item"><a class="nav-link btn-nav-cta ms-1" href="{{ url_for('auth.register') }}">Get Started</a></li>
+        {% endif %}
+
+        <li class="nav-item d-none d-lg-flex ms-1">
+          <button class="theme-toggle" id="themeToggle" title="Toggle dark mode">
+            <i class="fas fa-moon"></i>
+          </button>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- ── Flash messages ──────────────────────────────────────────────────────── -->
+<div class="flash-wrap">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in messages %}
+      {% set bscat = 'danger' if cat == 'error' else cat %}
+      <div class="alert alert-{{ bscat }} alert-dismissible fade show" role="alert">
+        <i class="fas fa-{{ 'circle-check' if bscat == 'success' else ('triangle-exclamation' if bscat in ['danger','warning'] else 'circle-info') }} me-2"></i>
+        {{ msg }}
+        <button type="button" class="btn-close btn-sm" data-bs-dismiss="alert"></button>
+      </div>
+    {% endfor %}
+  {% endwith %}
+</div>
+
+<!-- ── Main ────────────────────────────────────────────────────────────────── -->
+<main class="page-wrap">
+  <div class="container">
+    {% block content %}{% endblock %}
+  </div>
+</main>
+
+<!-- ── Footer ─────────────────────────────────────────────────────────────── -->
+<footer>
+  <strong>AlumniConnect</strong> — AI-Powered Alumni Mentorship &amp; Career Platform &copy; 2025
+</footer>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+
+<script>
+  /* ── Dark mode ─────────────────────────────────────────────── */
+  const root = document.documentElement;
+  const stored = localStorage.getItem('theme') || 'light';
+  root.setAttribute('data-theme', stored);
+
+  function updateIcon(theme) {
+    document.querySelectorAll('.theme-toggle i').forEach(i => {
+      i.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+    });
+  }
+  updateIcon(stored);
+
+  document.querySelectorAll('.theme-toggle').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      root.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
+      updateIcon(next);
+    });
+  });
+
+  /* ── Auto-dismiss alerts ────────────────────────────────────── */
+  document.querySelectorAll('.alert.alert-dismissible').forEach(el => {
+    setTimeout(() => bootstrap.Alert.getOrCreateInstance(el)?.close(), 4500);
+  });
+</script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block title %}{{ alumni.name }} – AlumniConnect{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-8">
+    <!-- Profile card -->
+    <div class="card overflow-hidden fade-up">
+      <!-- Banner -->
+      <div style="background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);padding:2.5rem 2rem;position:relative;overflow:hidden">
+        <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 80% 50%,rgba(79,70,229,.4),transparent 60%)"></div>
+        <div style="position:relative;z-index:1;display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap">
+          <div class="av av-lg av-accent" style="background:rgba(255,255,255,.15);color:#fff;border:2px solid rgba(255,255,255,.25)">
+            {{ alumni.name[0].upper() }}
+          </div>
+          <div>
+            <h2 style="color:#fff;font-weight:800;margin-bottom:.25rem">{{ alumni.name }}</h2>
+            <p style="color:rgba(255,255,255,.7);margin:0;font-size:.9rem">
+              <i class="fas fa-briefcase me-1"></i>{{ alumni.job_role or 'N/A' }}
+              {% if alumni.company %} &bull; <i class="fas fa-building ms-1 me-1"></i>{{ alumni.company }}{% endif %}
+              {% if alumni.location %} &bull; <i class="fas fa-location-dot ms-1 me-1"></i>{{ alumni.location }}{% endif %}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Body -->
+      <div class="card-body p-4">
+        {% if alumni.bio %}
+        <h5 style="font-weight:800;margin-bottom:.6rem">About</h5>
+        <p class="muted" style="font-size:.9rem;line-height:1.65">{{ alumni.bio }}</p>
+        <hr style="border-color:var(--border)"/>
+        {% endif %}
+
+        {% if alumni.skills %}
+        <h5 style="font-weight:800;margin-bottom:.75rem">Skills</h5>
+        <div class="mb-4">
+          {% for sk in alumni.skills.split(',') %}
+          <span class="skill-tag">{{ sk.strip() }}</span>
+          {% endfor %}
+        </div>
+        <hr style="border-color:var(--border)"/>
+        {% endif %}
+
+        <div class="row g-3">
+          <div class="col-md-6">
+            <p class="mb-1 muted" style="font-size:.83rem">GRADUATION YEAR</p>
+            <p style="font-weight:600">{{ alumni.graduation_year or '—' }}</p>
+            <p class="mb-1 muted" style="font-size:.83rem">EMAIL</p>
+            <p style="font-weight:600">{{ alumni.email }}</p>
+          </div>
+          <div class="col-md-6 d-flex align-items-start flex-column gap-2">
+            {% if alumni.linkedin %}
+            <a href="{{ alumni.linkedin }}" target="_blank" class="btn btn-ghost btn-sm">
+              <i class="fab fa-linkedin me-1" style="color:#0077b5"></i>LinkedIn Profile
+            </a>
+            {% endif %}
+            {% if session.role == 'student' %}
+            <button class="btn btn-accent btn-sm px-4" data-bs-toggle="modal" data-bs-target="#reqModal">
+              <i class="fas fa-paper-plane me-1"></i>Request Mentorship
+            </button>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if session.role == 'student' %}
+<div class="modal fade" id="reqModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header border-0">
+        <h5 class="modal-title" style="font-weight:800">Request Mentorship</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form method="POST" action="{{ url_for('student.request_mentor', alumni_id=alumni.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <div class="modal-body">
+          <textarea name="message" class="form-control" rows="5"
+                    placeholder="Write a message to {{ alumni.name }}…"></textarea>
+        </div>
+        <div class="modal-footer border-0">
+          <button type="button" class="btn btn-ghost" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-accent px-4">
+            <i class="fas fa-paper-plane me-1"></i>Send
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

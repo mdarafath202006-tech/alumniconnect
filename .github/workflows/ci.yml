@@ -1,0 +1,47 @@
+name: AlumniConnect CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Lint with flake8
+        run: |
+          pip install flake8
+          flake8 app/ --max-line-length=110 --exclude=__pycache__ --count --statistics
+
+      - name: Run tests
+        env:
+          FLASK_ENV: testing
+          SECRET_KEY: ci-test-secret
+          JWT_SECRET_KEY: ci-jwt-secret
+          DB_HOST: localhost
+          DB_USER: root
+          DB_PASSWORD: ""
+          DB_NAME: alumni_test
+        run: pytest tests/ -v --tb=short
+
+  docker:
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Docker image
+        run: docker build -f docker/Dockerfile -t alumniconnect:latest .

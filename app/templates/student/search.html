@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}Search Alumni – AlumniConnect{% endblock %}
+{% block content %}
+
+<h2 style="font-weight:800;margin-bottom:.3rem"><i class="fas fa-magnifying-glass me-2" style="color:var(--info)"></i>Search Alumni</h2>
+<p class="muted mb-4" style="font-size:.9rem">Find mentors by name, skill, company, or job role.</p>
+
+<!-- Search form -->
+<div class="card p-4 mb-4 fade-up">
+  <form method="GET" action="{{ url_for('student.search') }}">
+    <div class="row g-3 align-items-end">
+      <div class="col-md-5">
+        <label class="form-label">Keyword</label>
+        <div class="input-group">
+          <span class="input-group-text"><i class="fas fa-magnifying-glass"></i></span>
+          <input type="text" name="q" class="form-control" placeholder="Name, role, company…" value="{{ query }}"/>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Skill</label>
+        <input type="text" name="skill" class="form-control" placeholder="e.g. Python" value="{{ skill }}"/>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Company</label>
+        <input type="text" name="company" class="form-control" placeholder="e.g. Google" value="{{ company }}"/>
+      </div>
+      <div class="col-md-1">
+        <button type="submit" class="btn btn-accent w-100 py-2">Go</button>
+      </div>
+    </div>
+  </form>
+</div>
+
+<!-- Results -->
+{% if results %}
+<p class="muted mb-3" style="font-size:.87rem"><strong>{{ results|length }}</strong> result{{ 's' if results|length != 1 }} found</p>
+<div class="row g-3">
+  {% for a in results %}
+  <div class="col-md-6 col-lg-4 fade-up" style="animation-delay:{{ loop.index0 * 0.06 }}s">
+    <div class="card card-hover p-4 h-100" style="display:flex;flex-direction:column">
+      <div class="d-flex align-items-center gap-3 mb-3">
+        <div class="av av-md av-info">{{ a.name[0].upper() }}</div>
+        <div class="min-w-0">
+          <div style="font-weight:700;font-size:.95rem">{{ a.name }}</div>
+          <div class="muted" style="font-size:.8rem">{{ a.job_role or '' }}{% if a.company %} @ {{ a.company }}{% endif %}</div>
+        </div>
+      </div>
+      {% if a.skills %}
+      <div class="mb-2">
+        {% for sk in a.skills.split(',')[:4] %}
+        <span class="skill-tag">{{ sk.strip() }}</span>
+        {% endfor %}
+      </div>
+      {% endif %}
+      {% if a.location %}
+      <p class="muted mb-2" style="font-size:.82rem"><i class="fas fa-location-dot me-1"></i>{{ a.location }}</p>
+      {% endif %}
+      <a href="{{ url_for('alumni.view', alumni_id=a.id) }}" class="btn btn-ghost btn-sm mt-auto">
+        View Profile <i class="fas fa-arrow-right ms-1"></i>
+      </a>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{% elif request.args %}
+<div class="text-center py-5 muted fade-up">
+  <i class="fas fa-magnifying-glass" style="font-size:2.5rem;display:block;margin-bottom:1rem"></i>
+  No alumni found. Try different keywords.
+</div>
+
+{% else %}
+<div class="text-center py-5 muted fade-up">
+  <i class="fas fa-users" style="font-size:2.5rem;display:block;margin-bottom:1rem"></i>
+  Enter a keyword above to search alumni.
+</div>
+{% endif %}
+
+{% endblock %}

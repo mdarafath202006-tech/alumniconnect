@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+{% block title %}AlumniConnect – AI-Powered Mentorship Platform{% endblock %}
+{% block head %}
+<style>
+  .hero {
+    background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+    border-radius: 20px;
+    padding: 5rem 2rem;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 3rem;
+  }
+  .hero::before {5
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 70% 50%, rgba(79,70,229,.35) 0%, transparent 60%);
+  }
+  .hero-content { position: relative; z-index: 1; text-align: center; }
+  .hero h1 {
+    font-size: clamp(2.2rem, 5vw, 3.6rem);
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -1px;
+    line-height: 1.1;
+  }
+  .hero h1 span { color: #a78bfa; }
+  .hero p { color: rgba(255,255,255,.65); font-size: 1.12rem; max-width: 540px; margin: 1rem auto 2rem; }
+  .hero-badge {
+    display: inline-block;
+    background: rgba(167,139,250,.15);
+    border: 1px solid rgba(167,139,250,.3);
+    color: #a78bfa;
+    border-radius: 99px;
+    padding: .3rem 1rem;
+    font-size: .82rem;
+    font-weight: 600;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    margin-bottom: 1.25rem;
+  }
+  .pill-btn {
+    display: inline-block;
+    padding: .75rem 2rem;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: .95rem;
+    text-decoration: none;
+    transition: all .2s;
+  }
+  .pill-btn.primary { background: var(--accent); color: #fff; }
+  .pill-btn.primary:hover { background: var(--accent2); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(79,70,229,.4); }
+  .pill-btn.outline { background: transparent; border: 2px solid rgba(255,255,255,.25); color: #fff; }
+  .pill-btn.outline:hover { border-color: #fff; background: rgba(255,255,255,.08); }
+
+  .feature-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.75rem;
+    transition: transform .2s, box-shadow .2s;
+    height: 100%;
+  }
+  .feature-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg) !important; }
+  .feature-icon-wrap {
+    width: 52px; height: 52px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.4rem; margin-bottom: 1rem;
+  }
+  .feature-card h5 { font-size: 1rem; font-weight: 700; margin-bottom: .4rem; }
+  .feature-card p  { font-size: .87rem; color: var(--muted); margin: 0; }
+
+  .stats-bar {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 2rem;
+    display: flex; align-items: center; justify-content: space-around;
+    flex-wrap: wrap; gap: 1.5rem;
+    margin-bottom: 3rem;
+  }
+  .stat-item { text-align: center; }
+  .stat-item .num { font-family: var(--font-head); font-size: 2.2rem; font-weight: 800; color: var(--accent); }
+  .stat-item .lbl { font-size: .82rem; color: var(--muted); margin-top: 2px; }
+
+  .step-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.5rem;
+    text-align: center;
+    position: relative;
+  }
+  .step-num {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: var(--accent); color: #fff;
+    font-weight: 800; font-size: .9rem;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 1rem;
+  }
+</style>
+{% endblock %}
+{% block content %}
+
+<!-- Hero -->
+<div class="hero fade-up">
+  <div class="hero-content">
+    <div class="hero-badge"><i class="fas fa-robot me-1"></i> AI-Powered Platform</div>
+    <h1>Connect. Learn.<br><span>Grow Your Career.</span></h1>
+    <p>The smart alumni–student mentorship network. Get AI-matched with the right mentor, close your skill gaps, and launch your career.</p>
+    <div class="d-flex gap-3 justify-content-center flex-wrap">
+      <a href="{{ url_for('auth.register') }}" class="pill-btn primary">Get Started Free</a>
+      <a href="{{ url_for('auth.login') }}" class="pill-btn outline">Login</a>
+    </div>
+  </div>
+</div>
+
+<!-- Stats bar -->
+<div class="stats-bar fade-up fade-up-1">
+  <div class="stat-item"><div class="num">500+</div><div class="lbl">Registered Alumni</div></div>
+  <div class="stat-item"><div class="num">1,200+</div><div class="lbl">Students Guided</div></div>
+  <div class="stat-item"><div class="num">95%</div><div class="lbl">Placement Success</div></div>
+  <div class="stat-item"><div class="num">40+</div><div class="lbl">Companies Covered</div></div>
+</div>
+
+<!-- Features -->
+<h2 class="section-head text-center mb-4 fade-up fade-up-1">Everything you need to <span>succeed</span></h2>
+<div class="row g-3 mb-5">
+  {% set features = [
+    ("fas fa-robot",        "AI Mentor Matching",   "Multi-factor matching using TF-IDF, skill overlap, and industry alignment.",   "rgba(79,70,229,.12)",  "#4f46e5"),
+    ("fas fa-chart-line",   "Career Analytics",     "Visual insights from alumni data — top companies, skills, and career paths.",   "rgba(5,150,105,.12)",  "#059669"),
+    ("fas fa-magnifying-glass","Smart Search",      "Find alumni by skill, company, job role, or free-text keyword instantly.",     "rgba(8,145,178,.12)",  "#0891b2"),
+    ("fas fa-comment-dots", "Real-time Chat",       "Socket.IO powered live messaging between students and mentors.",               "rgba(217,119,6,.12)",  "#d97706"),
+    ("fas fa-chart-radar",  "Skill Gap Analysis",   "Compare your current skills against alumni in your target role.",              "rgba(220,38,38,.12)",  "#dc2626"),
+    ("fas fa-lock",         "Enterprise Security",  "Rate limiting, CSRF protection, password policy, and JWT REST APIs.",         "rgba(124,58,237,.12)", "#7c3aed")
+  ] %}
+  {% for icon, title, desc, bg, color in features %}
+  <div class="col-md-6 col-lg-4 fade-up fade-up-{{ loop.index if loop.index <= 4 else 4 }}">
+    <div class="feature-card">
+      <div class="feature-icon-wrap" style="background:{{ bg }}">
+        <i class="{{ icon }}" style="color:{{ color }}"></i>
+      </div>
+      <h5>{{ title }}</h5>
+      <p>{{ desc }}</p>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- How it works -->
+<h2 class="section-head text-center mb-4">How it <span>works</span></h2>
+<div class="row g-3 mb-5">
+  {% for step, title, desc in [
+    (1, "Create Your Profile", "Add your skills, interests, and career goals."),
+    (2, "Get AI-Matched",      "Our engine finds the most relevant alumni for your goals."),
+    (3, "Connect & Grow",      "Send requests, chat live, and accelerate your career.")
+  ] %}
+  <div class="col-md-4">
+    <div class="step-card fade-up fade-up-{{ step }}">
+      <div class="step-num">{{ step }}</div>
+      <h6 style="font-weight:700;margin-bottom:.4rem">{{ title }}</h6>
+      <p style="font-size:.87rem;color:var(--muted);margin:0">{{ desc }}</p>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{% endblock %}

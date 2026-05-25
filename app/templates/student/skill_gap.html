@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+{% block title %}Skill Gap Analysis – AlumniConnect{% endblock %}
+{% block content %}
+
+<h2 style="font-weight:800;margin-bottom:.3rem"><i class="fas fa-chart-radar me-2" style="color:var(--danger)"></i>Skill Gap Analysis</h2>
+<p class="muted mb-4" style="font-size:.9rem">Compare your skills against alumni in your target role and find what's missing.</p>
+
+<!-- Role selector -->
+<div class="card mb-4 p-4 fade-up">
+  <form method="GET" action="{{ url_for('student.skill_gap') }}" class="d-flex gap-3 align-items-end flex-wrap">
+    <div class="flex-grow-1">
+      <label class="form-label">Target Job Role</label>
+      <select name="role" class="form-select">
+        <option value="">-- Select a role --</option>
+        {% for r in roles %}
+        <option value="{{ r }}" {{ 'selected' if r == target_role }}>{{ r }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <button type="submit" class="btn btn-accent px-4 py-2">Analyze</button>
+  </form>
+</div>
+
+{% if target_role and gap %}
+  {% if gap.required_skills %}
+  <!-- Coverage summary -->
+  <div class="row g-3 mb-4">
+    <div class="col-sm-4 fade-up">
+      <div class="stat-card">
+        <div class="stat-icon" style="background:rgba(79,70,229,.12)">
+          <i class="fas fa-list-check" style="color:var(--accent)"></i>
+        </div>
+        <div>
+          <div class="stat-value">{{ gap.required_skills|length }}</div>
+          <div class="stat-label">Required Skills</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-4 fade-up fade-up-1">
+      <div class="stat-card">
+        <div class="stat-icon" style="background:rgba(5,150,105,.12)">
+          <i class="fas fa-circle-check" style="color:var(--success)"></i>
+        </div>
+        <div>
+          <div class="stat-value" style="color:var(--success)">{{ gap.student_has|length }}</div>
+          <div class="stat-label">You Already Have</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-4 fade-up fade-up-2">
+      <div class="stat-card">
+        <div class="stat-icon" style="background:rgba(220,38,38,.12)">
+          <i class="fas fa-circle-xmark" style="color:var(--danger)"></i>
+        </div>
+        <div>
+          <div class="stat-value" style="color:var(--danger)">{{ gap.missing|length }}</div>
+          <div class="stat-label">Skills to Acquire</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Coverage bar -->
+  <div class="card p-4 mb-4 fade-up">
+    <div class="d-flex justify-content-between mb-2">
+      <span style="font-weight:700">Coverage for <em>{{ target_role }}</em></span>
+      <span style="font-weight:800;color:{% if gap.coverage_pct >= 70 %}var(--success){% elif gap.coverage_pct >= 40 %}var(--warning){% else %}var(--danger){% endif %}">
+        {{ gap.coverage_pct }}%
+      </span>
+    </div>
+    <div class="match-bar-track" style="height:12px">
+      <div class="match-bar-fill" data-width="{{ gap.coverage_pct }}" style="width:0%;background:{% if gap.coverage_pct >= 70 %}var(--success){% elif gap.coverage_pct >= 40 %}var(--warning){% else %}var(--danger){% endif %}"></div>
+    </div>
+    <p class="muted mt-2 mb-0" style="font-size:.83rem">
+      {% if gap.coverage_pct >= 80 %}You're well-prepared for this role! Keep refining your skills.
+      {% elif gap.coverage_pct >= 50 %}Good start! Focus on the missing skills below to strengthen your profile.
+      {% else %}Significant skill gap — prioritize learning the missing skills listed below.{% endif %}
+    </p>
+  </div>
+
+  <div class="row g-3">
+    <!-- Skills you have -->
+    <div class="col-md-6 fade-up">
+      <div class="card p-4 h-100">
+        <h5 style="font-weight:800;color:var(--success);margin-bottom:1rem"><i class="fas fa-circle-check me-2"></i>Skills You Have</h5>
+        {% if gap.student_has %}
+          {% for sk in gap.student_has %}
+          <span class="skill-tag matched mb-1">✓ {{ sk }}</span>
+          {% endfor %}
+        {% else %}
+          <p class="muted" style="font-size:.87rem">None of the required skills match your profile yet.</p>
+        {% endif %}
+      </div>
+    </div>
+    <!-- Skills to learn -->
+    <div class="col-md-6 fade-up fade-up-1">
+      <div class="card p-4 h-100" style="border-color:rgba(220,38,38,.2)!important">
+        <h5 style="font-weight:800;color:var(--danger);margin-bottom:1rem"><i class="fas fa-circle-xmark me-2"></i>Skills to Acquire</h5>
+        {% if gap.missing %}
+          {% for sk in gap.missing %}
+          <span class="skill-tag mb-1" style="background:rgba(220,38,38,.08);color:var(--danger);border-color:rgba(220,38,38,.25)">{{ sk }}</span>
+          {% endfor %}
+          <p class="muted mt-3 mb-0" style="font-size:.82rem">
+            <i class="fas fa-lightbulb me-1"></i>Find alumni with these skills in <a href="{{ url_for('student.search') }}" style="color:var(--accent)">Search</a> and request mentorship.
+          </p>
+        {% else %}
+          <p style="color:var(--success);font-weight:600;font-size:.9rem"><i class="fas fa-party-horn me-1"></i>You have all required skills!</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <div class="card p-4 text-center muted fade-up">
+    <i class="fas fa-magnifying-glass" style="font-size:2rem;margin-bottom:.75rem;display:block"></i>
+    No alumni with the role <strong>{{ target_role }}</strong> found. Try another role.
+  </div>
+  {% endif %}
+
+{% elif target_role %}
+<div class="card p-4 text-center muted fade-up">
+  <p>No data available for this role.</p>
+</div>
+{% else %}
+<div class="card p-5 text-center muted fade-up">
+  <i class="fas fa-chart-radar" style="font-size:3rem;margin-bottom:1rem;display:block;color:var(--border)"></i>
+  <p style="font-size:.95rem">Select a target role above to see your skill gap analysis.</p>
+</div>
+{% endif %}
+
+{% endblock %}
+{% block scripts %}
+<script>
+document.querySelectorAll('.match-bar-fill').forEach(b => {
+  requestAnimationFrame(() => { b.style.width = b.dataset.width + '%'; });
+});
+</script>
+{% endblock %}

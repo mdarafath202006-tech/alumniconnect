@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard – AlumniConnect{% endblock %}
+{% block content %}
+
+<h2 style="font-weight:800;margin-bottom:.3rem"><i class="fas fa-gauge me-2" style="color:var(--danger)"></i>Admin Dashboard</h2>
+<p class="muted mb-4" style="font-size:.9rem">Platform overview and recent activity.</p>
+
+<!-- KPIs -->
+<div class="row g-3 mb-4">
+  {% for val, label, icon, color, bg in [
+    (students,     'Total Students',  'fas fa-graduation-cap', 'var(--accent)',   'rgba(79,70,229,.12)'),
+    (alumni_count, 'Total Alumni',    'fas fa-user-tie',       'var(--success)',  'rgba(5,150,105,.12)'),
+    (req_count,    'Total Requests',  'fas fa-inbox',          'var(--warning)',  'rgba(217,119,6,.12)'),
+    (accepted,     'Accepted',        'fas fa-circle-check',   'var(--info)',     'rgba(8,145,178,.12)')
+  ] %}
+  <div class="col-sm-6 col-lg-3 fade-up">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:{{ bg }}">
+        <i class="{{ icon }}" style="color:{{ color }}"></i>
+      </div>
+      <div>
+        <div class="stat-value" style="color:{{ color }}">{{ val }}</div>
+        <div class="stat-label">{{ label }}</div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="row g-4">
+  <!-- Recent registrations -->
+  <div class="col-lg-7 fade-up">
+    <div class="card p-4 h-100">
+      <h5 style="font-weight:800;margin-bottom:1rem">Recent Registrations</h5>
+      <div class="table-responsive">
+        <table class="table table-hover">
+          <thead><tr><th>User</th><th>Role</th><th>Joined</th></tr></thead>
+          <tbody>
+            {% for u in recent_users %}
+            <tr>
+              <td>
+                <div style="font-weight:600;font-size:.88rem">{{ u.name }}</div>
+                <div class="muted" style="font-size:.78rem">{{ u.email }}</div>
+              </td>
+              <td>
+                <span style="
+                  border-radius:8px;padding:2px 10px;font-size:.78rem;font-weight:700;
+                  background:{% if u.role=='student' %}rgba(79,70,229,.12){% elif u.role=='alumni' %}rgba(5,150,105,.12){% else %}rgba(220,38,38,.1){% endif %};
+                  color:{% if u.role=='student' %}var(--accent){% elif u.role=='alumni' %}var(--success){% else %}var(--danger){% endif %}
+                ">{{ u.role.title() }}</span>
+              </td>
+              <td class="muted" style="font-size:.82rem">{{ u.created_at }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent requests -->
+  <div class="col-lg-5 fade-up fade-up-1">
+    <div class="card p-4 h-100">
+      <h5 style="font-weight:800;margin-bottom:1rem">Recent Mentorship Requests</h5>
+      {% for r in recent_requests %}
+      <div class="d-flex align-items-start gap-2 mb-3 pb-3" style="border-bottom:1px solid var(--border)">
+        <div class="av av-sm av-accent" style="flex-shrink:0">{{ r.student[0].upper() }}</div>
+        <div class="flex-grow-1 min-w-0">
+          <div style="font-size:.85rem;font-weight:600">{{ r.student }} → {{ r.alumni }}</div>
+          <div class="muted" style="font-size:.78rem">{{ r.created_at }}</div>
+        </div>
+        <span style="
+          border-radius:8px;padding:2px 8px;font-size:.75rem;font-weight:700;flex-shrink:0;
+          background:{% if r.status=='pending' %}rgba(217,119,6,.12){% elif r.status=='accepted' %}rgba(5,150,105,.12){% else %}rgba(220,38,38,.1){% endif %};
+          color:{% if r.status=='pending' %}var(--warning){% elif r.status=='accepted' %}var(--success){% else %}var(--danger){% endif %}
+        ">{{ r.status.title() }}</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+{% endblock %}
