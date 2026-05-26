@@ -1,5 +1,5 @@
 """
-Seed script for Supabase PostgreSQL
+Seed script for Supabase PostgreSQL (FINAL FIX)
 Run: python migrations/seed_users.py
 """
 
@@ -7,13 +7,11 @@ import psycopg2
 from werkzeug.security import generate_password_hash
 import os
 
-# 🔗 Supabase DB connection (use environment variables in production)
+
+# ✅ Use single DATABASE_URL (BEST PRACTICE)
 conn = psycopg2.connect(
-    host=os.getenv("DB_HOST"),
-    database=os.getenv("DB_NAME", "postgres"),
-    user=os.getenv("DB_USER", "postgres"),
-    password=os.getenv("DB_PASSWORD"),
-    port=os.getenv("DB_PORT", 5432)
+    os.environ["DATABASE_URL"],
+    sslmode="require"
 )
 
 cur = conn.cursor()
