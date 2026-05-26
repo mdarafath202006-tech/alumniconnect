@@ -1,39 +1,101 @@
 """
-migrations/seed_users.py – Generate seed SQL with correct Werkzeug hashes.
-
-Run ONCE:
-  python migrations/seed_users.py | mysql -u root -p alumni_mentorship
+Seed script for Supabase PostgreSQL
+Run: python migrations/seed_users.py
 """
+
+import psycopg2
 from werkzeug.security import generate_password_hash
+import os
 
+# 🔗 Supabase DB connection (use environment variables in production)
+conn = psycopg2.connect(
+    host=os.getenv("DB_HOST"),
+    database=os.getenv("DB_NAME", "postgres"),
+    user=os.getenv("DB_USER", "postgres"),
+    password=os.getenv("DB_PASSWORD"),
+    port=os.getenv("DB_PORT", 5432)
+)
+
+cur = conn.cursor()
+
+# ---------------- USERS ----------------
+users = [
+    ("Admin", "admin@college.edu", "Admin@123", "admin"),
+]
+
+alumni_users = [
+    ("Arjun Sharma", "arjun@gmail.com", "Pass@1234", "alumni"),
+    ("Priya Nair", "priya@gmail.com", "Pass@1234", "alumni"),
+    ("Vikram Rajan", "vikram@gmail.com", "Pass@1234", "alumni"),
+    ("Deepa Menon", "deepa@gmail.com", "Pass@1234", "alumni"),
+    ("Karthik Kumar", "karthik@gmail.com", "Pass@1234", "alumni"),
+    ("Sneha Reddy", "sneha@gmail.com", "Pass@1234", "alumni"),
+    ("Rahul Verma", "rahul@gmail.com", "Pass@1234", "alumni"),
+    ("Divya Krishnan", "divya@gmail.com", "Pass@1234", "alumni"),
+]
+
+student_users = [
+    ("Student One", "student1@gmail.com", "Pass@1234", "student"),
+    ("Student Two", "student2@gmail.com", "Pass@1234", "student"),
+]
+
+all_users = users + alumni_users + student_users
+
+# ---------------- INSERT USERS ----------------
+user_ids = []
+
+for name, email, password, role in all_users:
+    hashed_pw = generate_password_hash(password)
+
+    cur.execute("""
+        INSERT INTO users (name, email, password, role)
+        VALUES (%s, %s, %s, %s)
+        RETURNING id
+    """, (name, email, hashed_pw, role))
+
+    user_id = cur.fetchone()[0]
+    user_ids.append((user_id, role))
+
+print("Users inserted successfully!")
+
+# ---------------- ALUMNI ----------------
 alumni_seed = [
-    (2, 2019, 'Google',    'Software Engineer',     'Python, Java, Machine Learning, Data Structures, Algorithms', 'Bangalore', 'Software engineer at Google with 5 years experience in ML and backend systems.'),
-    (3, 2020, 'TCS',       'Data Analyst',          'Python, SQL, Tableau, Power BI, Statistics, Excel',           'Chennai',   'Data analyst helping businesses make data-driven decisions.'),
-    (4, 2018, 'Infosys',   'Full Stack Developer',  'React, Node.js, MongoDB, JavaScript, CSS, HTML',              'Hyderabad', 'Full stack developer specialising in modern web applications.'),
-    (5, 2021, 'Amazon',    'Cloud Architect',       'AWS, Docker, Kubernetes, Python, DevOps, Linux',              'Bangalore', 'Cloud architect designing scalable infrastructure on AWS.'),
-    (6, 2017, 'Microsoft', 'AI Research Engineer',  'Deep Learning, TensorFlow, PyTorch, Python, NLP',             'Pune',      'AI researcher working on NLP and computer vision projects.'),
-    (7, 2022, 'Wipro',     'Cybersecurity Analyst', 'Network Security, Ethical Hacking, Python, Kali Linux',       'Mumbai',    'Cybersecurity professional protecting enterprise systems.'),
-    (8, 2019, 'Zoho',      'Product Manager',       'Product Management, Agile, Scrum, SQL, Communication',        'Chennai',   'Product manager driving user-centric product development.'),
-    (9, 2020, 'Flipkart',  'Mobile App Developer',  'Flutter, Dart, Android, Kotlin, iOS, Swift, Firebase',        'Bangalore', 'Mobile developer building cross-platform applications.'),
+    (user_ids[1][0], 2019, 'Google', 'Software Engineer',
+     'Python, Java, ML, DS', 'Bangalore',
+     'Software engineer at Google'),
+
+    (user_ids[2][0], 2020, 'TCS', 'Data Analyst',
+     'Python, SQL, Tableau', 'Chennai',
+     'Data analyst at TCS'),
 ]
 
-student_seed = [
-    (10, 'CSE', '3rd Year', 'Python, Machine Learning, SQL',  'Data Science, AI',      'Aspiring data scientist.'),
-    (11, 'IT',  '2nd Year', 'HTML, CSS, JavaScript, React',   'Web Development',        'Frontend developer in making.'),
-]
-
-pw = generate_password_hash('Pass@1234')
-
-print("-- ── Alumni profiles ────────────────────────────────────────────────")
 for user_id, grad_yr, company, role, skills, loc, bio in alumni_seed:
-    bio_esc = bio.replace("'", "\\'")
-    skills_esc = skills.replace("'", "\\'")
-    print(f"INSERT IGNORE INTO alumni (user_id, graduation_year, company, job_role, skills, location, bio) VALUES "
-          f"({user_id}, {grad_yr}, '{company}', '{role}', '{skills_esc}', '{loc}', '{bio_esc}');")
+    cur.execute("""
+        INSERT INTO alumni
+        (user_id, graduation_year, company, job_role, skills, location, bio)
+        VALUES (%s, %s, %s, %s, %s, %s, %s)
+    """, (user_id, grad_yr, company, role, skills, loc, bio))
 
-print("\n-- ── Student profiles ───────────────────────────────────────────────")
+# ---------------- STUDENTS ----------------
+student_seed = [
+    (user_ids[-2][0], 'CSE', '3rd Year',
+     'Python, ML, SQL', 'AI, Data Science',
+     'Aspiring data scientist'),
+
+    (user_ids[-1][0], 'IT', '2nd Year',
+     'HTML, CSS, JS', 'Web Dev',
+     'Frontend developer in making'),
+]
+
 for user_id, dept, year, skills, interests, bio in student_seed:
-    print(f"INSERT IGNORE INTO students (user_id, department, year, skills, interests, bio) VALUES "
-          f"({user_id}, '{dept}', '{year}', '{skills}', '{interests}', '{bio}');")
+    cur.execute("""
+        INSERT INTO students
+        (user_id, department, year, skills, interests, bio)
+        VALUES (%s, %s, %s, %s, %s, %s)
+    """, (user_id, dept, year, skills, interests, bio))
 
-print(f"\n-- Password for all seed users: Pass@1234 (hash: {pw[:30]}…)")
+conn.commit()
+cur.close()
+conn.close()
+
+print("🎉 Seeding completed successfully!")
