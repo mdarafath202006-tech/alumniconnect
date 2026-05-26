@@ -3,7 +3,7 @@ flask==3.0.3
 werkzeug==3.0.3
 
 # ── Database ──────────────────────────────────────────────────────────────────
-mysql-connector-python==8.3.0
+psycopg2-binary==2.9.9
 
 # ── Security ──────────────────────────────────────────────────────────────────
 flask-wtf==1.2.1          # CSRF protection
